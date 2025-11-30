@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>default</title>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        body { font-family: monospace; text-align: center; margin-top: 50px; background: #f4f4f4; }
+        
+        #setup { margin-bottom: 20px; }
+        input { padding: 8px; font-size: 16px; }
+        button { padding: 8px 16px; font-size: 16px; cursor: pointer; }
+
+        #game-container { display: none; flex-direction: column; align-items: center; }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 100px); 
+            gap: 5px; 
+            background: #333; 
+            padding: 5px; 
+            border-radius: 5px;
+        }
+        .cell { 
+            width: 100px; 
+            height: 100px; 
+            background: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 3rem; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
+        .cell:hover { background: #eee; }
+        
+        #status { font-size: 1.5rem; margin-bottom: 10px; font-weight: bold; }
+        .turn-green { color: green; }
+        .turn-red { color: red; }
+    </style>
+</head>
+<body>
+
+    <h1>Tic-Tac-Toe</h1>
+
+    <div id="setup">
+        <input type="text" id="roomName" placeholder="Enter Room Name (e.g. room1)">
+        <button onclick="joinGame()">Join Room</button>
+    </div>
+
+    <div id="game-container">
+        <div id="status">Waiting for opponent...</div>
+        <div id="my-role"></div>
+        
+        <div class="grid">
+            <div class="cell" onclick="move(0)" id="cell-0"></div>
+            <div class="cell" onclick="move(1)" id="cell-1"></div>
+            <div class="cell" onclick="move(2)" id="cell-2"></div>
+            <div class="cell" onclick="move(3)" id="cell-3"></div>
+            <div class="cell" onclick="move(4)" id="cell-4"></div>
+            <div class="cell" onclick="move(5)" id="cell-5"></div>
+            <div class="cell" onclick="move(6)" id="cell-6"></div>
+            <div class="cell" onclick="move(7)" id="cell-7"></div>
+            <div class="cell" onclick="move(8)" id="cell-8"></div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io("https://tictactoe-server-5s25.onrender.com");
+
+        let currentRoom = "";
+        let mySymbol = "";
+        let isMyTurn = false;
+
+
+        function joinGame() {
+            const roomInput = document.getElementById("roomName").value;
+            if (!roomInput) return alert("Please enter a room name");
+
+            currentRoom = roomInput;
+            
+            socket.emit("join_game", { room: currentRoom });
+        }
+
+        function move(index) {
+            const cell = document.getElementById(`cell-${index}`);
+            if (!isMyTurn || cell.innerText !== "") return;
+
+            socket.emit("make_move", { 
+                room: currentRoom, 
+                index: index 
+            });
+        }
+
+        socket.on("player_joined", (data) => {
+            mySymbol = data.symbol;
+            
+            document.getElementById("setup").style.display = "none";
+            document.getElementById("game-container").style.display = "flex";
+            document.getElementById("my-role").innerText = `You are playing as: ${mySymbol}`;
+        });
+
+        socket.on("error", (data) => {
+            alert(data.msg);
+            location.reload();
+        });
+
+        socket.on("game_start", (data) => {
+            if (mySymbol === "X") {
+                isMyTurn = true;
+                updateStatus("Your Turn", true);
+            } else {
+                isMyTurn = false;
+                updateStatus("Opponent's Turn", false);
+            }
+        });
+
+        socket.on("update_board", (data) => {
+            const board = data.board;
+            const nextTurn = data.nextTurn;
+
+            for (let i = 0; i < 9; i++) {
+                document.getElementById(`cell-${i}`).innerText = board[i];
+            }
+
+            if (nextTurn === mySymbol) {
+                isMyTurn = true;
+                updateStatus("Your Turn", true);
+            } else {
+                isMyTurn = false;
+                updateStatus("Opponent's Turn", false);
+            }
+        });
+
+        socket.on("game_over", (data) => {
+            isMyTurn = false; 
+            if (data.winner === "draw") {
+                updateStatus("It's a Draw!", false);
+            } else if (data.winner === mySymbol) {
+                updateStatus("VICTORY!", true);
+            } else {
+                updateStatus("DEFEAT!", false);
+            }
+        });
+
+        function updateStatus(msg, isGreen) {
+            const el = document.getElementById("status");
+            el.innerText = msg;
+            el.className = isGreen ? "turn-green" : "turn-red";
+        }
+
+    </script>
+</body>
+</html>
