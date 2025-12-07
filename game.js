@@ -96,7 +96,7 @@ function computerMove() {
         formData.append("board", JSON.stringify(board));
         formData.append("maximizing", "false");
 
-        fetch('http://127.0.0.1:5000/play', {
+        fetch('https://tictactoe-server-5s25.onrender.com/play', {
             method: 'POST',
             body: formData
         })
