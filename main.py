@@ -1,7 +1,10 @@
-from flask import Flask, request
+from flask import Flask, json, jsonify, request
 from flask_socketio import SocketIO, join_room, emit, disconnect
+from flask_cors import CORS
+from minimax import getBestMove
 
 app = Flask(__name__)
+CORS(app)
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -105,6 +108,35 @@ def check_winner(board):
         return "draw"
         
     return None
+
+@app.route('/play', methods=['POST'])
+def play_move():
+    try:
+        board_str = request.form.get('board')
+        maximizing_str = request.form.get('maximizing')
+
+        if not board_str or not maximizing_str:
+            return jsonify({"error": "Missing 'board' or 'maximizing' field"}), 400
+
+        try:
+            board = json.loads(board_str) 
+        except json.JSONDecodeError:
+            return jsonify({"error": "Invalid board format. Expected JSON string."}), 400
+        
+        is_maximizing = maximizing_str.lower() == 'true'
+
+        _, best_move = getBestMove(board, is_maximizing)
+
+        if best_move is None:
+             return jsonify({"game_over": True, "message": "No moves left"})
+
+        return jsonify({
+            "move": best_move,  
+            "maximizing": is_maximizing
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=5000)
