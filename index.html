@@ -46,6 +46,7 @@
     <div id="setup">
         <input type="text" id="roomName" placeholder="Enter Room Name (e.g. room1)">
         <button onclick="joinGame()">Join Room</button>
+        <button id="startButton">Play AI</button>
     </div>
 
     <div id="game-container">
@@ -66,7 +67,8 @@
     </div>
 
     <script>
-        const socket = io("https://tictactoe-server-5s25.onrender.com");
+        const link = "https://tictactoe-server-5s25.onrender.com"
+        const socket = io(link);
 
         let currentRoom = "";
         let mySymbol = "";
@@ -148,6 +150,11 @@
             el.innerText = msg;
             el.className = isGreen ? "turn-green" : "turn-red";
         }
+
+        document.getElementById('startButton').addEventListener('click', function(){
+        localStorage.setItem('fromStart', 'true');
+        window.location.href='game.html';
+    });
 
     </script>
 </body>
