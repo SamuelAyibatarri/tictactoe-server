@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="styles/style.css">
+    <title>Simple Tic Tac Toe | Game</title>
+</head>
+<body>
+
+    <a href="info.html" class="infos-2"><img src="assets/info.svg" alt="info" id="info" ></a>
+
+    <div class="wrapper">
+        <div id="gameplay">
+            <div class="scores">
+                <div>
+                    <h5>X(You)</h5>
+                    <p id="playerx-wins">0</p>
+                </div>
+                <div>
+                    <h5>Ties</h5>
+                    <p id="draws">0</p>
+                </div>
+                <div>
+                    <h5>O(AI)</h5>
+                    <p id="cpu-wins">0</p>
+                </div>
+            </div>
+            <div id="tic">
+                <div class="tbox" onclick="handleMove(0)"></div>
+                <div class="tbox" onclick="handleMove(1)"></div>
+                <div class="tbox" onclick="handleMove(2)"></div>
+                <div class="tbox" onclick="handleMove(3)"></div>
+                <div class="tbox" onclick="handleMove(4)"></div>
+                <div class="tbox" onclick="handleMove(5)"></div>
+                <div class="tbox" onclick="handleMove(6)"></div>
+                <div class="tbox" onclick="handleMove(7)"></div>
+                <div class="tbox" onclick="handleMove(8)"></div>
+            </div>
+            <div id="restart-button">
+                <div><img src="assets/restart.svg" alt="restart">
+                <h3>Restart</h3></div>
+            </div>
+        </div>
+        
+        <div class="box">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
