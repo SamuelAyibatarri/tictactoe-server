@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 
 # eN where N could be any number refers to the canonical unit vectors
@@ -20,11 +21,10 @@ def rowSum(userMatrix, row=1):
         cuv = e2
     if row == 3:
         cuv = e3
-    if row < 1 and row > 3:
-        return "Invalid row val"
-    A = np.array(userMatrix)
-    result = cuv @ A @ oneMatrixT
-    return result
+    if row < 1 or row > 3:
+        raise ValueError("Invalid row val")
+    result = cuv @ userMatrix @ oneMatrixT
+    return result.item()
 
 
 def colSum(userMatrix, col=1):
@@ -33,31 +33,95 @@ def colSum(userMatrix, col=1):
         cuv = e2T
     if col == 3:
         cuv = e3T
-    if col < 1 and col > 3:
-        return "Invalid col val"
-    A = np.array(userMatrix)
-    result = oneMatrix @ A @ cuv
-    return result
+    if col < 1 or col > 3:
+        raise ValueError("Invalid col val")
+    result = oneMatrix @ userMatrix @ cuv
+    return result.item()
 
 
 def lDiagonalSum(userMatrix):
-    A = np.array(userMatrix)
-    return np.trace(A)
+    return np.trace(userMatrix)
 
 
 def sDiagonalSum(userMatrix):
-    A = np.array(userMatrix)
-    A_Flipped = A[:, ::-1]
-    print(A_Flipped)
+    A_Flipped = userMatrix[:, ::-1]
     return np.trace(A_Flipped)
 
+# Evaluation Function
+def evaluationFunc(userMatrix):
+    A = np.array(userMatrix)
+    if (lDiagonalSum(A) == 3) or (sDiagonalSum(A) == 3):
+        return 1
 
-test = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-output = rowSum(test, 12)
-output2 = colSum(test, 1)
-output3 = lDiagonalSum(test)
-output4 = sDiagonalSum(test)
-print("Row sum output", output)
-print("Col sum output", output2)
-print("Trace sum output", output3)
-print("Secondary trace", output4)
+    if (lDiagonalSum(A) == -3) or (sDiagonalSum(A) == -3):
+        return -1
+
+    for i in range(1, 4):
+        xwin = (colSum(A, i) == 3) or (rowSum(A, i) == 3)
+        owin = (colSum(A, i) == -3) or (rowSum(A, i) == -3)
+        if xwin:
+            return 1
+        if owin:
+            return -1
+    return 0
+
+
+def getValidMoves(userMatrix):
+    validMoves = []
+    for i in range(3):
+        for j in range(3):
+            if userMatrix[i][j] == 0:
+                validMoves.append((i, j))
+    return validMoves
+
+
+def playMove(userMatrix, move, turn):
+    userMatrix[move[0]][move[1]] = turn
+    return userMatrix
+
+
+def minimax(userMatrix, maximizing: bool, depth = 0):
+    turn = 1 if maximizing else -1
+
+    score = evaluationFunc(userMatrix)
+
+    if score == 1: return 10 - depth
+    if score == -1: return -10 + depth  
+    
+    moves = getValidMoves(userMatrix)
+
+    if len(moves) == 0: return 0 
+    
+    baseScore = -float('inf') if maximizing else float('inf')
+
+    for move in moves:
+        boardCopy = copy.deepcopy(userMatrix)
+        playMove(boardCopy, move, turn)
+            
+        currentScore = minimax(boardCopy, not maximizing, depth + 1)
+        bestScore = max(baseScore, currentScore) if maximizing else min(baseScore, currentScore)
+        baseScore = bestScore
+    return bestScore
+
+
+def getBestMove(userMatrix, maximizing: bool):
+    print("Thinking...")
+    moveEvaluation = {}
+    moves = getValidMoves(userMatrix)
+    turn = 1 if maximizing else -1
+    bestScore = -float('inf') if maximizing else float('inf')
+    bestMove = None
+    
+    for move in moves:
+        boardCopy = copy.deepcopy(userMatrix)
+        playMove(boardCopy, move, turn)
+        
+        score = minimax(boardCopy, not maximizing)
+        
+        moveEvaluation[move] = score
+        
+        if (score > bestScore and maximizing) or (score < bestScore and not maximizing):
+            bestScore = score
+            bestMove = move
+            
+    return moveEvaluation, bestMove
